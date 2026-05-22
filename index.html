@@ -73,6 +73,8 @@
             background-color: #ffffff;
             display: flex;
             justify-content: center;
+            touch-action: none;
+            transition: none;
         }
 
         .frame {
@@ -126,14 +128,14 @@
         }
 
         .heaven {
-            height: 30%;
+            height: 40%;
             justify-content: flex-start;
             padding-top: 1dvh;
             gap: 0.5dvh;
         }
 
         .earth {
-            height: 45%;
+            height: 55%;
             margin-top: auto;
             justify-content: flex-end;
             padding-bottom: 1dvh;
@@ -210,7 +212,12 @@
         const numColumns = 13;
         const frame = document.getElementById('frame');
         const display = document.getElementById('value-display');
+        
+        // Variables for dragging the screen
+        let isDragging = false;
+        let startX, startY, scrollLeft, scrollTop;
 
+        // Initialize the Suanpan
         function initSuanpan() {
             for (let col = 0; col < numColumns; col++) {
                 const rod = document.createElement('div');
@@ -242,8 +249,42 @@
                 rod.appendChild(earth);
                 frame.appendChild(rod);
             }
+
+            // Add drag-to-scroll logic to the main-content container
+            const container = document.querySelector('.main-content');
+            container.addEventListener('mousedown', startDragging);
+            container.addEventListener('touchstart', startDragging);
+            window.addEventListener('mousemove', drag);
+            window.addEventListener('touchmove', drag);
+            window.addEventListener('mouseup', stopDragging);
+            window.addEventListener('touchend', stopDragging);
         }
 
+        function startDragging(e) {
+            isDragging = true;
+            const touch = e.touches ? e.touches[0] : e;
+            startX = touch.pageX - document.querySelector('.main-content').offsetLeft;
+            startY = touch.pageY - document.querySelector('.main-content').offsetTop;
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            const touch = e.touches ? e.touches[0] : e;
+            const x = touch.pageX - document.querySelector('.main-content').offsetLeft;
+            const y = touch.pageY - document.querySelector('.main-content').offsetTop;
+            
+            const moveX = (x - startX) * 0.5;
+            const moveY = (y - startY) * 0.5;
+            
+            document.querySelector('.suanpan-container').style.transform = `translate(${moveX}px, ${moveY}px)`;
+        }
+
+        function stopDragging() {
+            isDragging = false;
+        }
+
+        // --- Existing Bead Logic ---
         function handleBeadClick(e) {
             const bead = e.target;
             const type = bead.dataset.type;
@@ -254,23 +295,15 @@
 
             if (type === 'heaven') {
                 if (!isActive) {
-                    allBeads.forEach((b, i) => {
-                        if (i >= idx) b.classList.add('active');
-                    });
+                    allBeads.forEach((b, i) => { if (i >= idx) b.classList.add('active'); });
                 } else {
-                    allBeads.forEach((b, i) => {
-                        if (i <= idx) b.classList.remove('active');
-                    });
+                    allBeads.forEach((b, i) => { if (i <= idx) b.classList.remove('active'); });
                 }
             } else {
                 if (!isActive) {
-                    allBeads.forEach((b, i) => {
-                        if (i <= idx) b.classList.add('active');
-                    });
+                    allBeads.forEach((b, i) => { if (i <= idx) b.classList.add('active'); });
                 } else {
-                    allBeads.forEach((b, i) => {
-                        if (i >= idx) b.classList.remove('active');
-                    });
+                    allBeads.forEach((b, i) => { if (i >= idx) b.classList.remove('active'); });
                 }
             }
             calculateTotal();
@@ -279,20 +312,15 @@
         function calculateTotal() {
             const rods = document.querySelectorAll('.rod');
             let total = 0;
-
             rods.forEach((rod, colIndex) => {
                 const power = rods.length - 1 - colIndex;
                 let colValue = 0;
-
                 const heavenBeads = rod.querySelectorAll('.heaven .bead.active');
                 colValue += heavenBeads.length * 5;
-
                 const earthBeads = rod.querySelectorAll('.earth .bead.active');
                 colValue += earthBeads.length * 1;
-
                 total += colValue * Math.pow(10, power);
             });
-
             display.innerText = total.toLocaleString();
         }
 
@@ -300,6 +328,7 @@
             const allBeads = document.querySelectorAll('.bead');
             allBeads.forEach(bead => bead.classList.remove('active'));
             calculateTotal();
+            document.querySelector('.suanpan-container').style.transform = 'translate(0, 0)';
         }
 
         initSuanpan();
