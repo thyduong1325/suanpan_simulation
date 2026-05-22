@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Digital Suanpan</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #111;
+            margin-bottom: 10px;
+        }
+
+        .suanpan-container {
+            background-color: #ffffff;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .value-display {
+            font-size: 4rem;
+            text-align: center;
+            font-weight: bold;
+            color: #111;
+            margin-bottom: 20px;
+            font-family: monospace;
+        }
+
+        .frame {
+            display: flex;
+            background-color: #fcfcfc;
+            padding: 10px;
+            border: 15px solid #2c1e16;
+            position: relative;
+            border-radius: 4px;
+        }
+
+        .beam {
+            position: absolute;
+            top: 130px;
+            left: 0;
+            right: 0;
+            height: 15px;
+            background-color: #2c1e16;
+            z-index: 10;
+        }
+
+        .rod {
+            width: 45px;
+            height: 450px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            margin: 0 5px;
+        }
+
+        .rod::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background-color: #888;
+            z-index: 1;
+            box-shadow: inset 2px 0 4px rgba(0,0,0,0.5);
+        }
+
+        .heaven, .earth {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            z-index: 2;
+            align-items: center;
+        }
+
+        .heaven {
+            height: 130px;
+            justify-content: flex-start;
+            padding-top: 5px;
+            gap: 4px;
+        }
+
+        .earth {
+            height: 300px;
+            justify-content: flex-end;
+            padding-bottom: 5px;
+            margin-top: 20px;
+            gap: 4px;
+        }
+
+        .bead {
+            width: 40px;
+            height: 20px;
+            border-radius: 10px;
+            background: radial-gradient(circle at 30% 30%, #5c3a21, #241107);
+            cursor: pointer;
+            transition: transform 0.15s ease-in-out;
+            box-shadow: 0 4px 5px rgba(0,0,0,0.6);
+        }
+
+        .bead:hover {
+            filter: brightness(1.2);
+        }
+
+        .heaven .bead.active {
+            transform: translateY(45px);
+        }
+
+        .earth .bead.active {
+            transform: translateY(-55px);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border: none;
+            background-color: #2c1e16;
+            color: white;
+            border-radius: 5px;
+            font-family: inherit;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #1a110d;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>The Chinese Suanpan</h1>
+    <div class="value-display" id="value-display">0</div>
+
+    <div class="suanpan-container">
+        <div class="frame" id="frame">
+            <div class="beam"></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button onclick="resetSuanpan()">Reset Board</button>
+    </div>
+
+    <script>
+        const numColumns = 13;
+        const frame = document.getElementById('frame');
+        const display = document.getElementById('value-display');
+
+        function initSuanpan() {
+            for (let col = 0; col < numColumns; col++) {
+                const rod = document.createElement('div');
+                rod.className = 'rod';
+
+                const heaven = document.createElement('div');
+                heaven.className = 'heaven';
+                for (let i = 0; i < 2; i++) {
+                    const bead = document.createElement('div');
+                    bead.className = 'bead';
+                    bead.dataset.type = 'heaven';
+                    bead.dataset.idx = i;
+                    bead.addEventListener('click', handleBeadClick);
+                    heaven.appendChild(bead);
+                }
+
+                const earth = document.createElement('div');
+                earth.className = 'earth';
+                for (let i = 0; i < 5; i++) {
+                    const bead = document.createElement('div');
+                    bead.className = 'bead';
+                    bead.dataset.type = 'earth';
+                    bead.dataset.idx = i;
+                    bead.addEventListener('click', handleBeadClick);
+                    earth.appendChild(bead);
+                }
+
+                rod.appendChild(heaven);
+                rod.appendChild(earth);
+                frame.appendChild(rod);
+            }
+        }
+
+        function handleBeadClick(e) {
+            const bead = e.target;
+            const type = bead.dataset.type;
+            const idx = parseInt(bead.dataset.idx);
+            const parent = bead.parentElement;
+            const allBeads = Array.from(parent.children);
+            const isActive = bead.classList.contains('active');
+
+            if (type === 'heaven') {
+                if (!isActive) {
+                    allBeads.forEach((b, i) => {
+                        if (i >= idx) b.classList.add('active');
+                    });
+                } else {
+                    allBeads.forEach((b, i) => {
+                        if (i <= idx) b.classList.remove('active');
+                    });
+                }
+            } else {
+                if (!isActive) {
+                    allBeads.forEach((b, i) => {
+                        if (i <= idx) b.classList.add('active');
+                    });
+                } else {
+                    allBeads.forEach((b, i) => {
+                        if (i >= idx) b.classList.remove('active');
+                    });
+                }
+            }
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            const rods = document.querySelectorAll('.rod');
+            let total = 0;
+
+            rods.forEach((rod, colIndex) => {
+                const power = rods.length - 1 - colIndex;
+                let colValue = 0;
+
+                const heavenBeads = rod.querySelectorAll('.heaven .bead.active');
+                colValue += heavenBeads.length * 5;
+
+                const earthBeads = rod.querySelectorAll('.earth .bead.active');
+                colValue += earthBeads.length * 1;
+
+                total += colValue * Math.pow(10, power);
+            });
+
+            display.innerText = total.toLocaleString();
+        }
+
+        function resetSuanpan() {
+            const allBeads = document.querySelectorAll('.bead');
+            allBeads.forEach(bead => bead.classList.remove('active'));
+            calculateTotal();
+        }
+
+        initSuanpan();
+    </script>
+</body>
+</html>
